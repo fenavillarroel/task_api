@@ -12,3 +12,5 @@ env.bak/
 venv.bak/
 
 .idea
+
+.DS_Store

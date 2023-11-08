@@ -21,10 +21,10 @@ task_router = APIRouter(prefix='/tasks')
 
 state_decription = description = """
 ### Valid States
-- Pending
-- Progress
-- Complete
-- Cancel
+- 0: Pending
+- 1: Progress
+- 2: Complete
+- 3: Cancel
 """
 
 @task_router.post('', response_model=TaskResponseModel)
@@ -85,7 +85,8 @@ async def get_task(task_id: int,
 @task_router.put('/{task_id}', response_model=TaskResponseModel)
 async def update_task(task_id: int,
                         task_request: TaskRequestPutModel,
-                        user: User = Depends(get_current_user)):
+                        user: User = Depends(get_current_user),
+                        description = state_decription):
 
     user_task = Task.select().where(Task.id == task_id).first()
 
@@ -121,7 +122,7 @@ async def update_task(task_id: int,
         user=user.serialize()
     )
 
-@task_router.put('/state/{task_id}', response_model=TaskResponseModel)
+@task_router.put('/states/{task_id}', response_model=TaskResponseModel)
 async def update_task_state(task_id: int,
                         task_request: TaskRequestPutStateModel,
                         user: User = Depends(get_current_user),
