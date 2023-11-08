@@ -71,3 +71,23 @@ http://127.0.0.1:8000/docs
 
 ### Probando la API
 
+Lo primero que se debe hacer es crear un usuario, para ello se debe usar el endpoint Create User
+
+![user](./images/create_user.png)
+
+Luego para consumir los distintos endpoints de tareas te debes autentificar con el usuario recien creado.
+
+Existen dos alternativas para ello:
+
+La primera es usar el endpoint Auth, pasandole solo el username y password
+
+![auth](./images/auth.png)
+
+La segunda alternativa es haciendo click sobre cualquiera de los candados que aparecen en el costado derecho como abiertos lo que desplegara un formulario para que ingreses tu usuario y contraseña recien creados
+
+![auth](./images/candados.png)
+
+![auth](./images/form.png)
+
+
+Y eso es todo ya puedes consumir la API Tareas.
