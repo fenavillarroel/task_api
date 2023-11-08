@@ -6,6 +6,7 @@ from fastapi import Depends
 from ..schema.task_schema import TaskResponseModel
 from ..schema.task_schema import TaskRequestModel
 from ..schema.task_schema import TaskRequestPutModel
+from ..schema.task_schema import TaskRequestPutStateModel
 
 from ..utils.settings import task_states
 from ..utils.settings import page
@@ -17,6 +18,14 @@ from ..model.tasks import Task
 from ..utils.tokens import get_current_user
 
 task_router = APIRouter(prefix='/tasks')
+
+state_decription = description = """
+### Valid States
+- Pending
+- Progress
+- Complete
+- Cancel
+"""
 
 @task_router.post('', response_model=TaskResponseModel)
 async def create_task(user_task: TaskRequestModel,
@@ -96,9 +105,36 @@ async def update_task(task_id: int,
         user_task.end_date = task_request.end_date
     try:
         state = task_states[task_request.state]
+        user_task.state = state
     except:
         raise HTTPException(status_code=404, detail='Code State Not found')
 
+    user_task.save()
+
+    return TaskResponseModel(
+        id=user_task.id,
+        title=user_task.title,
+        description=user_task.description,
+        end_date=user_task.end_date,
+        state=task_states[user_task.state],
+        created_at=user_task.created_at,
+        user=user.serialize()
+    )
+
+@task_router.put('/state/{task_id}', response_model=TaskResponseModel)
+async def update_task_state(task_id: int,
+                        task_request: TaskRequestPutStateModel,
+                        user: User = Depends(get_current_user),
+                        description = state_decription):
+    try:
+        state = list(task_states.values()).index(task_request.state)
+    except:
+        state = None
+    if not state:
+        raise HTTPException(status_code=404, detail='State Name Not found')
+
+    user_task = Task.select().where(Task.id == task_id).first()
+    user_task.state = state
     user_task.save()
 
     return TaskResponseModel(

@@ -25,3 +25,6 @@ class TaskRequestPutModel(BaseModel):
     description: str
     end_date: str = datetime.now().date()
     state: int
+
+class TaskRequestPutStateModel(BaseModel):
+    state: str = 'Pending'

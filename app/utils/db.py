@@ -1,12 +1,12 @@
 from peewee import *
 from .settings import username_db
 from .settings import password_db
+from .settings import db_host
+from .settings import db_port
 
-
-
-database = MySQLDatabase('tasks',
+database = PostgresqlDatabase('tasks',
                          user=username_db,
                          password=password_db,
-                         host='127.0.0.1',
-                         port=3306)
+                         host=db_host,
+                         port=db_port)
 
