@@ -43,7 +43,7 @@ create database tasks;
 Nos descargamos la APP desde Github
 
 ```
-https://github.com/fenavillarroel/task_api.git
+git clone https://github.com/fenavillarroel/task_api.git
 ```
 
 Luego nos movemos al directorio task_api y ejecutamos los siguientes comandos
@@ -83,6 +83,12 @@ La primera es usar el endpoint Auth, pasandole solo el username y password
 
 ![auth](./images/auth.png)
 
+Luego si deseas consumir la API desde un cliente externo y luego de haber consumido el endpoint Auth este te retornará el token con el que puedes consumir la API usando CURL u otro cliente como Postman
+
+![auth](./images/token.png)
+
+![auth](./images/get_tasks.png)
+
 La segunda alternativa es haciendo click sobre cualquiera de los candados que aparecen en el costado derecho como abiertos lo que desplegara un formulario para que ingreses tu usuario y contraseña recien creados
 
 ![auth](./images/candados.png)
@@ -91,3 +97,5 @@ La segunda alternativa es haciendo click sobre cualquiera de los candados que ap
 
 
 Y eso es todo ya puedes consumir la API Tareas.
+
+Se proporciona un Dockerfile en caso que necesites hacer un despligue en un cluster de Kubernetes.
