@@ -96,19 +96,15 @@ async def update_task(task_id: int,
     if user_task.user_id != user.id:
         raise HTTPException(status_code=401, detail='Owner Task is different')
 
-    if task_request.title:
-        user_task.title = task_request.title
-
-    if task_request.description:
-        user_task.description = task_request.description
-
-    if task_request.end_date:
-        user_task.end_date = task_request.end_date
     try:
         state = task_states[task_request.state]
-        user_task.state = state
     except:
         raise HTTPException(status_code=404, detail='Code State Not found')
+
+    user_task.state = task_request.state
+    user_task.title = task_request.title
+    user_task.description = task_request.description
+    user_task.end_date = task_request.end_date
 
     user_task.save()
 
@@ -130,8 +126,6 @@ async def update_task_state(task_id: int,
     try:
         state = list(task_states.values()).index(task_request.state)
     except:
-        state = None
-    if not state:
         raise HTTPException(status_code=404, detail='State Name Not found')
 
     user_task = Task.select().where(Task.id == task_id).first()
