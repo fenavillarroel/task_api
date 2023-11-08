@@ -80,21 +80,25 @@ Luego para consumir los distintos endpoints de tareas te debes autentificar con 
 
 Existen dos alternativas para ello:
 
-La primera es usar el endpoint Auth, pasandole solo el username y password
+La primera es usar el endpoint Auth, pasandole solo el username y password.
+Este endpoint te servira para autentificar usando un cliente externo como alguna APP Front End, curl, Postman, etc.
+Este endpoint te retornará un Token que debes usar desde alguno de los clientes externos antes mencionados.
 
 ![auth](./images/auth.png)
-
-Luego si deseas consumir la API desde un cliente externo y luego de haber consumido el endpoint Auth este te retornará el token con el que puedes consumir la API usando CURL u otro cliente como Postman
 
 ![auth](./images/token.png)
 
 ![auth](./images/get_tasks.png)
 
-La segunda alternativa para autentificar es haciendo click sobre cualquiera de los candados que aparecen en el costado derecho como abiertos lo que desplegara un formulario para que ingreses tu usuario y contraseña recien creados
+La segunda alternativa para autentificar es haciendo click sobre cualquiera de los candados que aparecen en el costado derecho como abiertos lo que desplegara un formulario para que ingreses tu usuario y contraseña recien creados.
+Esta opción te permitira usar esta documentación para probar directamente los endponits.
+Observaras que luego de autentificar exitosamente desde el formulario (pinchando en alguno de los candados) los candados aparecerán como cerrados lo que indica que ya estas autentificado y listo para probar los endpoints directamente
 
 ![auth](./images/candados.png)
 
 ![auth](./images/form.png)
+
+![auth](./images/cerrados.png)
 
 
 Y eso es todo ya puedes consumir la API Tareas.
