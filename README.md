@@ -9,11 +9,12 @@ Escrito en Python utilizando el Framework FastAPI
 - PostgreSQL Client
 - Docker Engine
 
+Docker Engine no es una dependencia excluyente si es que ya cuentas con PostgreSQL instalado o corriendo en algún host local o de tu red LAN.
+La menciono ya que es la forma más simple de levantar un servidor de base de datos local de manera rapida.
+
 ### Configuracion de la Base de Datos
 
-En mi caso levante una instancia de PostgreSQL versión 14.9
-
-Vas a docker hub y descargas La imagen de Postgres de la siguiente forma
+En mi caso levante una instancia de PostgreSQL versión 14.9 usando Docker
 
 ```
 docker pull postgres:14.9
@@ -66,7 +67,7 @@ Si no ves ningún ya tendras la APP ejecutadose en tu localhost y podrás accede
 http://127.0.0.1:8000/docs
 ```
 
-![plot](./images/api.png)
+![api](./images/api.png)
 
 
 ### Probando la API
@@ -89,7 +90,7 @@ Luego si deseas consumir la API desde un cliente externo y luego de haber consum
 
 ![auth](./images/get_tasks.png)
 
-La segunda alternativa es haciendo click sobre cualquiera de los candados que aparecen en el costado derecho como abiertos lo que desplegara un formulario para que ingreses tu usuario y contraseña recien creados
+La segunda alternativa para autentificar es haciendo click sobre cualquiera de los candados que aparecen en el costado derecho como abiertos lo que desplegara un formulario para que ingreses tu usuario y contraseña recien creados
 
 ![auth](./images/candados.png)
 
