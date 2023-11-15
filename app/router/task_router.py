@@ -3,14 +3,19 @@ from fastapi import APIRouter
 from fastapi import HTTPException
 from fastapi import Depends
 
+from sqlalchemy.orm import Session
+
+from fastapi_pagination.ext.sqlalchemy import paginate
+from fastapi_pagination import Page
+
 from ..schema.task_schema import TaskResponseModel
 from ..schema.task_schema import TaskRequestModel
 from ..schema.task_schema import TaskRequestPutModel
 from ..schema.task_schema import TaskRequestPutStateModel
+from ..schema.task_schema import TaskDeleteResponseModel
 
-from ..utils.settings import task_states
-from ..utils.settings import page
-from ..utils.settings import limit_page
+from ..utils.settings import TASK_STATES
+from ..utils.db import get_db
 
 from ..model.users import User
 from ..model.tasks import Task
@@ -29,41 +34,42 @@ state_decription = description = """
 
 @task_router.post('', response_model=TaskResponseModel)
 async def create_task(user_task: TaskRequestModel,
-                        user: User = Depends(get_current_user)):
+                        user: User = Depends(get_current_user),
+                        db: Session = Depends(get_db)):
 
-    user_task = Task.create(
+    user_task = Task(
         title = user_task.title,
         description = user_task.description,
         end_date = user_task.end_date,
         user_id = user.id
     )
 
-    return TaskResponseModel(
-        id=user_task.id,
-        title=user_task.title,
-        description=user_task.description,
-        end_date=user_task.end_date,
-        state=task_states[user_task.state],
-        created_at=user_task.created_at,
-        user=user.serialize()
-    )
+    db.add(user_task)
+    db.commit()
+    db.refresh(user_task)
 
-@task_router.get('', response_model=List[TaskResponseModel])
+    user_task.state = TASK_STATES[user_task.state]
+
+    return user_task
+
+
+@task_router.get('', response_model=Page[TaskResponseModel])
 async def get_tasks(user: User = Depends(get_current_user),
-                      page: int = page,
-                      limit: int = limit_page):
+                        db: Session = Depends(get_db)):
 
-    user_tasks = Task.select().where(Task.user_id == user.id).paginate(page, limit)
-    for user_task in user_tasks:
-        user_task.state = task_states[user_task.state]
+    user_tasks = db.query(Task).filter(Task.user_id == user.id)
+    for task_user in user_tasks:
+        task_user.state = TASK_STATES[task_user.state]
 
-    return [user_task for user_task in user_tasks]
+    return paginate(user_tasks)
+
 
 @task_router.get('/{task_id}', response_model=TaskResponseModel)
 async def get_task(task_id: int,
-                     user: User = Depends(get_current_user)):
+                    user: User = Depends(get_current_user),
+                    db: Session = Depends(get_db)):
 
-    user_task = Task.select().where(Task.id == task_id).first()
+    user_task = db.query(Task).filter(Task.id == task_id).one_or_none()
 
     if user_task is None:
         raise HTTPException(status_code=404, detail='Task Not found')
@@ -71,24 +77,18 @@ async def get_task(task_id: int,
     if user_task.user_id != user.id:
         raise HTTPException(status_code=401, detail='Owner Task is different')
 
-    return TaskResponseModel(
-        id=user_task.id,
-        title=user_task.title,
-        description=user_task.description,
-        end_date=user_task.end_date,
-        state=task_states[user_task.state],
-        created_at=user_task.created_at,
-        user=user.serialize()
-    )
+    user_task.state = TASK_STATES[user_task.state]
 
+    return user_task
 
 @task_router.put('/{task_id}', response_model=TaskResponseModel)
 async def update_task(task_id: int,
                         task_request: TaskRequestPutModel,
                         user: User = Depends(get_current_user),
+                        db: Session = Depends(get_db),
                         description = state_decription):
 
-    user_task = Task.select().where(Task.id == task_id).first()
+    user_task = db.query(Task).filter(Task.id == task_id).first()
 
     if user_task is None:
         raise HTTPException(status_code=404, detail='Task Not found')
@@ -97,7 +97,7 @@ async def update_task(task_id: int,
         raise HTTPException(status_code=401, detail='Owner Task is different')
 
     try:
-        state = task_states[task_request.state]
+        state = TASK_STATES[task_request.state]
     except:
         raise HTTPException(status_code=404, detail='Code State Not found')
 
@@ -106,47 +106,44 @@ async def update_task(task_id: int,
     user_task.description = task_request.description
     user_task.end_date = task_request.end_date
 
-    user_task.save()
+    db.commit()
+    db.refresh(user_task)
 
-    return TaskResponseModel(
-        id=user_task.id,
-        title=user_task.title,
-        description=user_task.description,
-        end_date=user_task.end_date,
-        state=task_states[user_task.state],
-        created_at=user_task.created_at,
-        user=user.serialize()
-    )
+    user_task.state = TASK_STATES[task_request.state]
+
+    return user_task
+
 
 @task_router.put('/states/{task_id}', response_model=TaskResponseModel)
 async def update_task_state(task_id: int,
                         task_request: TaskRequestPutStateModel,
                         user: User = Depends(get_current_user),
+                        db: Session = Depends(get_db),
                         description = state_decription):
     try:
-        state = list(task_states.values()).index(task_request.state)
+        state = list(TASK_STATES.values()).index(task_request.state)
     except:
         raise HTTPException(status_code=404, detail='State Name Not found')
 
-    user_task = Task.select().where(Task.id == task_id).first()
+    user_task = db.query(Task).filter(Task.id == task_id).one_or_none()
+    if user_task is None:
+        raise HTTPException(status_code=404, detail='Task Not found')
+
     user_task.state = state
-    user_task.save()
+    db.commit()
+    db.refresh(user_task)
 
-    return TaskResponseModel(
-        id=user_task.id,
-        title=user_task.title,
-        description=user_task.description,
-        end_date=user_task.end_date,
-        state=task_states[user_task.state],
-        created_at=user_task.created_at,
-        user=user.serialize()
-    )
+    user_task.state = TASK_STATES[state]
 
-@task_router.delete('/{task_id}', response_model=TaskResponseModel)
+    return user_task
+
+
+@task_router.delete('/{task_id}', response_model=TaskDeleteResponseModel)
 async def delete_task(task_id: int,
+                        db: Session = Depends(get_db),
                         user: User = Depends(get_current_user)):
 
-    user_task = Task.select().where(Task.id == task_id).first()
+    user_task = db.query(Task).filter(Task.id == task_id).one_or_none()
 
     if user_task is None:
         raise HTTPException(status_code=404, detail='Task Not found')
@@ -154,14 +151,8 @@ async def delete_task(task_id: int,
     if user_task.user_id != user.id:
         raise HTTPException(status_code=401, detail='Owner Task is different')
 
-    user_task.delete_instance()
+    db.delete(user_task)
+    db.commit()
+    user_task.state = TASK_STATES[user_task.state]
 
-    return TaskResponseModel(
-        id=user_task.id,
-        title=user_task.title,
-        description=user_task.description,
-        end_date=user_task.end_date,
-        state=task_states[user_task.state],
-        created_at=user_task.created_at,
-        user=user.serialize()
-    )
+    return user_task

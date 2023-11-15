@@ -13,7 +13,16 @@ class TaskResponseModel(BaseModel):
     end_date: date
     state: str
     created_at: datetime
-    user: UserResponseModel
+    owner: UserResponseModel
+
+class TaskDeleteResponseModel(BaseModel):
+    id: int
+    title: str
+    description: str
+    end_date: date
+    state: str
+    created_at: datetime
+
 
 class TaskRequestModel(BaseModel):
     title: str
