@@ -1,16 +1,25 @@
-from peewee import *
+from fastapi import Depends
+
+from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy.orm import relationship
+from sqlalchemy.orm import Session
+
+from ..utils.db import Base
+from ..utils.db import engine
+from ..utils.db import session
+
 from datetime import datetime
 import hashlib
-from ..utils.db import database
 
+class User(Base):
+    __tablename__ = "users"
 
-class User(Model):
-    username = CharField(max_length=50, unique=True, null=False)
-    password = CharField(max_length=50, null=False)
-    created_at = DateField(default=datetime.now())
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True)
+    password = Column(String, nullable=False)
+    created_at = Column(DateTime, default=datetime.now())
 
-    def __str__(self):
-        return self.username
+    items = relationship("Task", back_populates="owner")
 
     @staticmethod
     def create_password(password):
@@ -20,7 +29,7 @@ class User(Model):
 
     @classmethod
     def authenticate(cls, username, password):
-        user = cls.select().where(User.username == username).first()
+        user = session.query(cls).filter(cls.username == username).first()
         if user and user.password == cls.create_password(password):
             return user
 
@@ -32,7 +41,4 @@ class User(Model):
         d['username'] = self.username
         return d
 
-    class Meta:
-        database = database
-        table_name = 'users'
-
+Base.metadata.create_all(engine)
